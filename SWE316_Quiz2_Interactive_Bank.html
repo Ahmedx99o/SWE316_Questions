@@ -1,0 +1,424 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SWE 316 | Interactive Quiz 2 Bank</title>
+  <style>
+    :root {
+      --navy:#102a43; --blue:#176b87; --sky:#e8f4f7; --paper:#ffffff;
+      --bg:#f3f6f8; --ink:#17232d; --muted:#60717d; --line:#d5e0e6;
+      --good:#177245; --good-bg:#e8f7ef; --bad:#b83232; --bad-bg:#fff0f0;
+      --warn:#9b6515; --shadow:0 12px 35px rgba(16,42,67,.10);
+    }
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Arial,sans-serif;line-height:1.55}
+    button{font:inherit}
+    .hero{background:linear-gradient(130deg,var(--navy),#174d68 64%,var(--blue));color:#fff;padding:38px 20px 86px}
+    .hero-inner,.shell{max-width:1100px;margin:auto}
+    .eyebrow{letter-spacing:.12em;text-transform:uppercase;font-size:.78rem;font-weight:800;color:#aee1ee}
+    h1{font-size:clamp(1.85rem,5vw,3.1rem);line-height:1.08;margin:.45rem 0 .8rem}
+    .hero p{max-width:760px;color:#d9edf3;margin:0}
+    .shell{padding:0 18px 70px;margin-top:-54px}
+    .dashboard{position:sticky;top:10px;z-index:10;background:rgba(255,255,255,.96);backdrop-filter:blur(10px);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);padding:18px;margin-bottom:24px}
+    .dash-top{display:flex;gap:18px;justify-content:space-between;align-items:flex-start;flex-wrap:wrap}
+    .stats{display:grid;grid-template-columns:repeat(4,minmax(95px,1fr));gap:10px;flex:1}
+    .stat{background:#f7fafb;border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+    .stat span{display:block;color:var(--muted);font-size:.76rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em}
+    .stat strong{display:block;font-size:1.35rem;color:var(--navy)}
+    .actions{display:flex;gap:8px;flex-wrap:wrap}
+    .btn{border:1px solid var(--line);background:#fff;color:var(--navy);padding:9px 13px;border-radius:10px;font-weight:750;cursor:pointer}
+    .btn:hover{border-color:var(--blue);background:var(--sky)}
+    .btn.danger{color:var(--bad)}
+    .progress{height:9px;background:#e7edf1;border-radius:999px;overflow:hidden;margin-top:14px}
+    .progress>div{height:100%;width:0;background:linear-gradient(90deg,#2fa6bd,var(--blue));transition:width .25s ease}
+    .save-note{font-size:.78rem;color:var(--muted);margin-top:7px;display:flex;justify-content:space-between;gap:12px}
+    .filters{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 22px}
+    .filter{border:1px solid var(--line);background:#fff;border-radius:999px;padding:8px 13px;cursor:pointer;color:var(--navy);font-weight:700}
+    .filter.active{background:var(--navy);color:#fff;border-color:var(--navy)}
+    .section-title{margin:32px 0 12px;color:var(--navy);font-size:1.35rem}
+    .question{background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:20px;margin:0 0 16px;box-shadow:0 5px 18px rgba(16,42,67,.055);scroll-margin-top:180px}
+    .qhead{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px}
+    .qnum{font-size:.78rem;font-weight:850;letter-spacing:.07em;text-transform:uppercase;color:var(--blue)}
+    .badge{font-size:.73rem;border-radius:999px;padding:4px 9px;font-weight:800;background:#eef3f5;color:var(--muted)}
+    .badge.correct{background:var(--good-bg);color:var(--good)}
+    .badge.wrong{background:var(--bad-bg);color:var(--bad)}
+    .prompt{font-size:1.04rem;font-weight:760;margin:0 0 14px;color:var(--navy)}
+    pre{white-space:pre-wrap;overflow:auto;background:#f4f7f8;border:1px solid var(--line);border-radius:10px;padding:12px;font-size:.88rem;line-height:1.45}
+    .options{display:grid;gap:9px}
+    .option{width:100%;display:flex;gap:11px;align-items:flex-start;text-align:left;border:1px solid var(--line);background:#fff;padding:12px 13px;border-radius:11px;cursor:pointer;color:var(--ink)}
+    .option:hover{border-color:#6faabc;background:#f7fbfc}
+    .letter{flex:0 0 27px;height:27px;border-radius:8px;background:#edf3f5;color:var(--navy);display:grid;place-items:center;font-size:.8rem;font-weight:850}
+    .option.selected.correct{border-color:var(--good);background:var(--good-bg)}
+    .option.selected.wrong{border-color:var(--bad);background:var(--bad-bg)}
+    .option.reveal-correct{border-color:var(--good);box-shadow:inset 0 0 0 1px var(--good)}
+    .feedback{display:none;margin-top:14px;border-radius:12px;padding:14px;border:1px solid var(--line)}
+    .feedback.show{display:block}
+    .feedback.good{background:var(--good-bg);border-color:#a9d8be}
+    .feedback.bad{background:var(--bad-bg);border-color:#edbcbc}
+    .feedback h3{font-size:.95rem;margin:0 0 7px}
+    .feedback p{margin:0 0 10px}
+    .why-list{display:grid;gap:7px;margin-top:10px}
+    .why{background:rgba(255,255,255,.72);border-radius:8px;padding:8px 10px;font-size:.9rem}
+    .why strong{color:var(--navy)}
+    .empty{background:#fff;border:1px dashed var(--line);border-radius:14px;padding:28px;text-align:center;color:var(--muted)}
+    .footer{text-align:center;color:var(--muted);font-size:.85rem;padding-top:22px}
+    @media(max-width:720px){
+      .hero{padding-top:28px}.shell{padding-left:11px;padding-right:11px}.dashboard{top:5px;padding:12px}.stats{grid-template-columns:repeat(2,1fr)}
+      .stat{padding:7px 9px}.stat strong{font-size:1.1rem}.question{padding:16px}.save-note{display:block}.actions{width:100%}.btn{flex:1}
+    }
+    @media print{.hero{padding:20px}.shell{margin-top:0}.dashboard,.filters,.feedback{position:static}.actions{display:none}.question{break-inside:avoid;box-shadow:none}}
+  </style>
+</head>
+<body>
+  <header class="hero">
+    <div class="hero-inner">
+      <div class="eyebrow">SWE 316 · Quiz 2</div>
+      <h1>Interactive Question Bank</h1>
+      <p>50 questions covering class design principles, good design principles, and the Singleton pattern through Slide 8. Feedback appears immediately after every answer.</p>
+    </div>
+  </header>
+
+  <main class="shell">
+    <section class="dashboard" aria-label="Quiz progress">
+      <div class="dash-top">
+        <div class="stats">
+          <div class="stat"><span>Answered</span><strong id="answered">0/50</strong></div>
+          <div class="stat"><span>Correct</span><strong id="correct">0</strong></div>
+          <div class="stat"><span>Wrong</span><strong id="wrong">0</strong></div>
+          <div class="stat"><span>Score</span><strong id="score">0%</strong></div>
+        </div>
+        <div class="actions">
+          <button class="btn" id="nextUnanswered">Next unanswered</button>
+          <button class="btn danger" id="reset">Reset progress</button>
+        </div>
+      </div>
+      <div class="progress" aria-label="Completion progress"><div id="bar"></div></div>
+      <div class="save-note"><span>Your selections are saved automatically on this browser.</span><span id="savedAt">No answers saved yet</span></div>
+    </section>
+
+    <nav class="filters" aria-label="Question filters">
+      <button class="filter active" data-filter="all">All questions</button>
+      <button class="filter" data-filter="unanswered">Unanswered</button>
+      <button class="filter" data-filter="wrong">Wrong answers</button>
+      <button class="filter" data-filter="correct">Correct answers</button>
+    </nav>
+
+    <div id="quiz"></div>
+    <div class="footer">Selections remain editable. Choosing a different option updates your score and saved progress.</div>
+  </main>
+
+<script>
+const STORAGE_KEY = "swe316_quiz2_bank_v1";
+
+const questions = [
+  {id:1,type:"tf",q:"A class automatically follows the Single-Responsibility Principle if it contains only one method.",a:"F",o:[
+    ["T","True","Method count does not determine responsibility. One method could still perform several unrelated jobs."],
+    ["F","False","Correct. SRP concerns reasons to change, not the number of methods."]],why:"A class follows SRP when it has one responsibility, meaning one reason to change."},
+  {id:2,type:"tf",q:"In the Single-Responsibility Principle, a responsibility means a reason for the class to change.",a:"T",o:[
+    ["T","True","Correct. The slides define responsibility through the class's reason to change."],
+    ["F","False","Incorrect. This is the definition used by SRP in the lecture."]],why:"A well-designed class should have one and only one reason to change."},
+  {id:3,type:"tf",q:"A class can contain several methods and still follow the Single-Responsibility Principle.",a:"T",o:[
+    ["T","True","Correct. Several methods may all support the same responsibility."],
+    ["F","False","Incorrect. SRP does not limit a class to one method."]],why:"The methods may be numerous as long as they serve one coherent responsibility."},
+  {id:4,type:"tf",q:"A Book class that maintains one book's data and searches the entire bookstore inventory has more than one responsibility.",a:"T",o:[
+    ["T","True","Correct. Maintaining one book and searching a collection are separate concerns."],
+    ["F","False","Incorrect. The two concerns have different reasons to change."]],why:"The lecture separates book data from collection searching."},
+  {id:5,type:"tf",q:"Moving inventory searching from Book to BookCollection separates the two responsibilities.",a:"T",o:[
+    ["T","True","Correct. Book keeps book data while BookCollection owns collection operations."],
+    ["F","False","Incorrect. This redesign is the lecture's SRP solution."]],why:"Each class then focuses on one logic."},
+  {id:6,type:"tf",q:"A class with several responsibilities may require unrelated functionality to be retested when one responsibility changes.",a:"T",o:[
+    ["T","True","Correct. A change may affect other functionality stored in the same class."],
+    ["F","False","Incorrect. This testing and maintenance risk is a reason to apply SRP."]],why:"Separating responsibilities reduces the impact of change and testing effort."},
+  {id:7,type:"tf",q:"The Open-Closed Principle says that a module should be open for modification and closed for extension.",a:"F",o:[
+    ["T","True","Incorrect. This reverses the principle."],
+    ["F","False","Correct. A module should be open for extension and closed for modification."]],why:"New behavior should be added by extension without repeatedly changing stable code."},
+  {id:8,type:"tf",q:"Inheritance and interfaces can allow a system to support new behavior through extension.",a:"T",o:[
+    ["T","True","Correct. Both can provide extension points for new implementations."],
+    ["F","False","Incorrect. The lecture explicitly identifies subclasses and interfaces as OOP extension mechanisms."]],why:"OCP uses abstractions and polymorphic extension to reduce modification of existing units."},
+  {id:9,type:"tf",q:"Adding BiographyDiscount and then modifying DiscountManager to process it can violate the Open-Closed Principle.",a:"T",o:[
+    ["T","True","Correct. Adding a new type forces a change to an existing manager."],
+    ["F","False","Incorrect. The repeated manager modification is the problem in the example."]],why:"A new discount should extend the system without requiring DiscountManager to know each concrete type."},
+  {id:10,type:"tf",q:"Code cannot violate a design principle if it compiles and produces the expected result.",a:"F",o:[
+    ["T","True","Incorrect. Functional code can still have poor maintainability or extensibility."],
+    ["F","False","Correct. The original discount code works but still violates OCP."]],why:"Correct behavior and good design are different concerns."},
+  {id:11,type:"tf",q:"Depending on a common BookDiscount interface allows DiscountManager to support new discount implementations without being modified for every new type.",a:"T",o:[
+    ["T","True","Correct. The manager uses one abstraction shared by all discount types."],
+    ["F","False","Incorrect. This abstraction is exactly what prevents type-specific manager methods."]],why:"New classes implement BookDiscount while the manager continues using the same interface."},
+  {id:12,type:"tf",q:"The main idea of Divide and Conquer is to handle a large problem as a collection of smaller parts.",a:"T",o:[
+    ["T","True","Correct. Smaller parts are normally easier to understand and manage."],
+    ["F","False","Incorrect. This is the central idea of Divide and Conquer."]],why:"The design divides a difficult whole into manageable components."},
+  {id:13,type:"tf",q:"Divide and Conquer guarantees that there will be no coupling between components.",a:"F",o:[
+    ["T","True","Incorrect. Divided components may still depend on one another."],
+    ["F","False","Correct. Division helps manage complexity but does not eliminate every dependency."]],why:"Coupling must be considered separately and reduced where possible."},
+  {id:14,type:"tf",q:"One benefit of Divide and Conquer is that different software engineers can work on different parts.",a:"T",o:[
+    ["T","True","Correct. Separate people can work on separate components."],
+    ["F","False","Incorrect. Parallel work is one benefit listed in the lecture."]],why:"Division supports specialization and parallel development."},
+  {id:15,type:"tf",q:"A class may be divided into methods as part of the Divide and Conquer principle.",a:"T",o:[
+    ["T","True","Correct. The lecture's hierarchy ends with a class divided into methods."],
+    ["F","False","Incorrect. Methods are smaller units within a class."]],why:"The example hierarchy is system, subsystems, packages, classes, then methods."},
+  {id:16,type:"tf",q:"High cohesion means that a module keeps related elements together and keeps unrelated elements outside.",a:"T",o:[
+    ["T","True","Correct. This matches the lecture's definition of high cohesion."],
+    ["F","False","Incorrect. Keeping unrelated work in the module would lower cohesion."]],why:"High cohesion makes the module easier to understand and change."},
+  {id:17,type:"tf",q:"Adding an email-sending operation to a class responsible only for calculating grades would normally increase its cohesion.",a:"F",o:[
+    ["T","True","Incorrect. Email delivery introduces an unrelated responsibility."],
+    ["F","False","Correct. The unrelated operation lowers cohesion."]],why:"A cohesive grade-calculation class should keep only closely related grade logic."},
+  {id:18,type:"tf",q:"Coupling occurs when dependencies exist between modules.",a:"T",o:[
+    ["T","True","Correct. Coupling describes interdependencies among modules."],
+    ["F","False","Incorrect. This is the lecture's definition of coupling."]],why:"The greater the interdependence, the more one module may be affected by another."},
+  {id:19,type:"tf",q:"High coupling may cause a change in one module to require changes in another module.",a:"T",o:[
+    ["T","True","Correct. Change propagation is a major problem caused by coupling."],
+    ["F","False","Incorrect. Dependencies are precisely why changes may spread."]],why:"Reducing coupling limits the effect of change across the design."},
+  {id:20,type:"tf",q:"Content coupling occurs when one module modifies data that is internal to another component.",a:"T",o:[
+    ["T","True","Correct. Directly modifying another component's internal data is content coupling."],
+    ["F","False","Incorrect. The statement matches the slide definition."]],why:"A common example is directly modifying another object's public instance variable."},
+  {id:21,type:"tf",q:"According to the slides, content coupling should always be avoided.",a:"T",o:[
+    ["T","True","Correct. The slides explicitly say content coupling should always be avoided."],
+    ["F","False","Incorrect. Unlike necessary stamp coupling, content coupling receives a strict warning."]],why:"It breaks component boundaries by exposing and modifying internal state."},
+  {id:22,type:"tf",q:"Sending a command or flag that tells another method which operation to perform is an example of control coupling.",a:"T",o:[
+    ["T","True","Correct. The caller uses a command to control the called procedure's behavior."],
+    ["F","False","Incorrect. This is the defining sign of control coupling."]],why:"The called method branches based on a flag or command supplied by the caller."},
+  {id:23,type:"tf",q:"Declaring a class as the type of a method argument introduces stamp coupling.",a:"T",o:[
+    ["T","True","Correct. This is the definition given in the slides."],
+    ["F","False","Incorrect. Passing a class-typed object as an argument creates stamp coupling."]],why:"The method becomes coupled to the structure or interface of that object type."},
+  {id:24,type:"tf",q:"Every form of stamp coupling must always be eliminated.",a:"F",o:[
+    ["T","True","Incorrect. The slides state that some stamp coupling is necessary."],
+    ["F","False","Correct. Passing objects is often legitimate, although unnecessary object dependencies should be reduced."]],why:"Stamp coupling is not given the same absolute prohibition as content coupling."},
+  {id:25,type:"tf",q:"The Singleton pattern ensures that a class has one instance and provides a global access point to that instance.",a:"T",o:[
+    ["T","True","Correct. This is the stated intent of Singleton."],
+    ["F","False","Incorrect. Both unique instance and global access are part of the pattern's intent."]],why:"Clients obtain the sole instance through the class's access operation."},
+
+  {id:26,type:"mcq",q:"Which statement best describes the Single-Responsibility Principle?",a:"C",o:[
+    ["A","A class should contain only one attribute","SRP does not restrict the number of attributes."],
+    ["B","A class should contain only one method","SRP is about responsibility, not method count."],
+    ["C","A class should have only one reason to change","Correct. This is the lecture's definition of SRP."],
+    ["D","A class should never communicate with another class","Classes may collaborate while each keeps one responsibility."]],why:"One reason to change is the key test for identifying a single responsibility."},
+  {id:27,type:"mcq",q:"Why does the following class most likely violate SRP?",code:"class Student {\n  void storeStudentData() { }\n  double calculateGPA() { return 0; }\n  void sendEmail() { }\n}",a:"B",o:[
+    ["A","It contains more than one method","Multiple methods are allowed when they support one responsibility."],
+    ["B","It handles student data, GPA calculation, and email communication","Correct. These concerns can change for different reasons."],
+    ["C","Its methods do not use static","Static membership is unrelated to SRP."],
+    ["D","The class does not use inheritance","Inheritance is not required to satisfy SRP."]],why:"The class combines storage, academic calculation, and communication responsibilities."},
+  {id:28,type:"mcq",q:"A Book class stores a book's title and author and searches a collection containing thousands of books. What is the best redesign?",a:"C",o:[
+    ["A","Make all methods static","Static methods do not separate responsibilities."],
+    ["B","Move the title and author to BookCollection","Those properties belong to an individual Book."],
+    ["C","Move collection searching to BookCollection","Correct. Collection behavior belongs in a collection-focused class."],
+    ["D","Create one subclass for each book","Individual book records do not require separate subclasses."]],why:"The redesign gives Book responsibility for book data and BookCollection responsibility for collection searching."},
+  {id:29,type:"mcq",q:"Which statement correctly describes the Open-Closed Principle?",a:"B",o:[
+    ["A","Open for modification and closed for extension","This reverses the principle."],
+    ["B","Open for extension and closed for modification","Correct. Add behavior through extension while protecting existing code."],
+    ["C","Closed for both extension and modification","A closed design could not accept new behavior."],
+    ["D","Open for both extension and modification","OCP specifically aims to avoid modifying stable code for each extension."]],why:"New features should extend the system rather than require repeated changes to existing modules."},
+  {id:30,type:"mcq",q:"Why should existing production code preferably be extended instead of modified when adding a feature?",a:"B",o:[
+    ["A","Extension eliminates the need for testing","New extensions still require testing."],
+    ["B","Modification may introduce unexpected behavior into existing functionality","Correct. Existing dependents can be affected by the change."],
+    ["C","Extended code cannot contain errors","Any new code can contain errors."],
+    ["D","Modification always causes compilation errors","A modification may compile and still introduce behavioral problems."]],why:"OCP minimizes risk by leaving stable, already-used code unchanged where possible."},
+  {id:31,type:"mcq",q:"What is the main design problem in this DiscountManager?",code:"class DiscountManager {\n  void processCookbookDiscount(CookbookDiscount d) { }\n  void processBiographyDiscount(BiographyDiscount d) { }\n}",a:"B",o:[
+    ["A","The methods should be private","The manager's service may legitimately be public."],
+    ["B","Every new discount type may require modifying DiscountManager","Correct. The manager grows a type-specific method for every new discount."],
+    ["C","The class needs a public constructor","Constructor visibility does not solve the extension problem."],
+    ["D","The parameters should be primitive values","Primitive values would remove useful discount abstractions and not fix OCP."]],why:"The manager depends on concrete types, so adding a type causes modification."},
+  {id:32,type:"mcq",q:"Which method signature best supports the Open-Closed Principle?",a:"C",o:[
+    ["A","void processDiscount(CookbookDiscount discount)","This accepts only one concrete discount type."],
+    ["B","void processDiscount(BiographyDiscount discount)","This is also tied to one concrete type."],
+    ["C","void processDiscount(BookDiscount discount)","Correct. The manager depends on the common abstraction."],
+    ["D","void processDiscount(String discountType)","A string command usually leads to branching for every type and repeated modification."]],why:"Using BookDiscount lets any implementation be supplied through the same method."},
+  {id:33,type:"mcq",q:"Which change most directly applies the Open-Closed Principle to the discount example?",a:"C",o:[
+    ["A","Make DiscountManager a Singleton","Controlling instance count does not make discount behavior extensible."],
+    ["B","Make all discount attributes public","This weakens encapsulation and does not solve concrete dependencies."],
+    ["C","Create a BookDiscount interface implemented by the discount classes","Correct. The interface provides the extension point."],
+    ["D","Add an if statement for every discount type","The conditional must be modified whenever a new type appears."]],why:"A common interface lets new discount classes join the design without changing the manager."},
+  {id:34,type:"mcq",q:"After DiscountManager depends on BookDiscount, a new StudentDiscount is required. What should normally happen?",a:"C",o:[
+    ["A","Add a new method to DiscountManager","That returns to modifying the manager for every type."],
+    ["B","Modify all existing discount classes","Existing implementations do not need to know the new type."],
+    ["C","Create StudentDiscount as another implementation of BookDiscount","Correct. This extends the design through the common interface."],
+    ["D","Replace BookDiscount with StudentDiscount","The abstraction should remain so all implementations can be accepted."]],why:"The system becomes open to new implementations and the manager remains closed to type-specific changes."},
+  {id:35,type:"mcq",q:"Which is a direct benefit of Divide and Conquer?",a:"B",o:[
+    ["A","It makes every component independent","Division alone does not eliminate dependencies."],
+    ["B","It makes smaller components easier to understand","Correct. Smaller parts reduce the amount handled at once."],
+    ["C","It completely removes maintenance costs","No design principle removes all maintenance."],
+    ["D","It guarantees reusable code","Reusability requires additional design decisions."]],why:"Smaller components are easier to understand, change, replace, and assign to specialists."},
+  {id:36,type:"mcq",q:"Which order correctly represents division from a larger system to smaller units?",a:"B",o:[
+    ["A","Class, package, subsystem, method","This mixes the hierarchy and places method after a larger subsystem."],
+    ["B","System, subsystem, package, class, method","Correct. This follows the division hierarchy in the slides."],
+    ["C","Method, class, package, subsystem, system","This is the reverse direction, from smallest to largest."],
+    ["D","System, method, subsystem, class, package","A system is not divided directly into methods before subsystems and classes."]],why:"Each level divides into the next smaller level: system, subsystem, package, class, method."},
+  {id:37,type:"mcq",q:"Which module has the highest cohesion?",a:"B",o:[
+    ["A","A class that stores students, sends emails, and prints invoices","The responsibilities are not closely related."],
+    ["B","A class whose methods all perform operations related to course registration","Correct. The elements focus on one related purpose."],
+    ["C","A class containing unrelated utility methods","Unrelated utilities create low cohesion."],
+    ["D","A class that performs every operation in the system","A system-wide class combines many unrelated concerns."]],why:"High cohesion keeps related work together and excludes unrelated work."},
+  {id:38,type:"mcq",q:"A module calculates salaries, displays advertisements, and controls printers. What is the most likely evaluation?",a:"C",o:[
+    ["A","High cohesion because the module has several methods","Method count does not create cohesion."],
+    ["B","High cohesion because all methods are public","Visibility does not make responsibilities related."],
+    ["C","Low cohesion because the responsibilities are unrelated","Correct. The three concerns have little relationship."],
+    ["D","Low coupling because everything is placed in one module","Combining everything may hide module boundaries but creates a poorly cohesive design."]],why:"The module includes unrelated elements instead of focusing on one coherent purpose."},
+  {id:39,type:"mcq",q:"What is the primary problem caused by high coupling?",a:"B",o:[
+    ["A","Modules become too small","Size is not the defining problem of coupling."],
+    ["B","Changes can spread from one module to other dependent modules","Correct. Interdependencies increase change impact."],
+    ["C","Modules contain too many related elements","Related elements describe cohesion, not coupling."],
+    ["D","The program cannot use interfaces","Interfaces can actually help reduce certain dependencies."]],why:"High coupling makes components harder to understand and change independently."},
+  {id:40,type:"mcq",q:"Assume salary belongs internally to Employee. Which coupling is demonstrated by changing it directly from another module?",code:"Employee employee = new Employee();\nemployee.salary = 10000;",a:"C",o:[
+    ["A","Stamp coupling","Stamp coupling concerns passing a class-typed object as an argument."],
+    ["B","Control coupling","No flag or command controls a called procedure here."],
+    ["C","Content coupling","Correct. Another module directly modifies Employee's internal data."],
+    ["D","Data abstraction","Direct access weakens information hiding rather than demonstrating a good abstraction."]],why:"Content coupling occurs when one component changes data internal to another component."},
+  {id:41,type:"mcq",q:"Which coupling does this method demonstrate?",code:"void generateReport(String command) {\n  if (command.equals(\"PDF\")) createPDF();\n  else createTextFile();\n}",a:"B",o:[
+    ["A","Content coupling","The method is not directly modifying another component's internal data."],
+    ["B","Control coupling","Correct. The command explicitly determines which behavior the method performs."],
+    ["C","Stamp coupling","The parameter is a String command, not a domain object passed as a data structure."],
+    ["D","No coupling","The caller influences the procedure's control flow through the command."]],why:"A flag or command that controls what the called procedure does signals control coupling."},
+  {id:42,type:"mcq",q:"Which coupling exists because an Employee object is passed as an argument?",code:"void sendEmail(Employee employee, String text) {\n  // Uses employee.getEmail()\n}",a:"C",o:[
+    ["A","Content coupling","The code does not directly modify Employee's internal data."],
+    ["B","Control coupling","The Employee object is not a command that chooses an operation."],
+    ["C","Stamp coupling","Correct. Employee, a class, is declared as a method argument type."],
+    ["D","Inheritance coupling","No superclass-subclass relationship is shown."]],why:"Passing the complete Employee object couples the method to that class type."},
+  {id:43,type:"mcq",q:"Which statement about stamp coupling matches the slides?",a:"B",o:[
+    ["A","It occurs only when primitive values are passed","Stamp coupling involves class-typed arguments, not only primitive data."],
+    ["B","It occurs whenever a class is declared as a method argument type","Correct. This is the definition in the lecture."],
+    ["C","It must always be completely avoided","The slides say some stamp coupling is necessary."],
+    ["D","It occurs when one module changes another module's internal data","That describes content coupling."]],why:"Class-typed method parameters create stamp coupling, which can sometimes be reasonable and necessary."},
+  {id:44,type:"mcq",q:"A method requires only an employee's email address but receives the complete Employee object. What is the most relevant concern?",a:"B",o:[
+    ["A","Content coupling","Receiving the object does not by itself mean its internal state is modified directly."],
+    ["B","Stamp coupling","Correct. The method depends on the full Employee type for a small piece of information."],
+    ["C","Divide and Conquer","This principle does not name the dependency created by the parameter."],
+    ["D","Singleton access","Nothing here controls the number of Employee instances."]],why:"Passing more structure than the method needs creates an avoidable dependency on the Employee class."},
+  {id:45,type:"mcq",q:"Which example best demonstrates Design for Reuse?",a:"B",o:[
+    ["A","Using an existing sorting library","This is Design with Reuse because an existing component is consumed."],
+    ["B","Designing a serializer that can save objects from many classes","Correct. The component is generalized for use in many contexts."],
+    ["C","Copying code from another system","Copying is not the same as designing a generally reusable component."],
+    ["D","Calling an existing reusable component","This also describes Design with Reuse."]],why:"Design for Reuse creates components that other contexts can use later."},
+  {id:46,type:"mcq",q:"What is a hook in a reusable design?",a:"B",o:[
+    ["A","A private attribute that cannot be changed","Privacy alone does not provide an extension point."],
+    ["B","A deliberately added point where future designers can add functionality","Correct. A hook supports planned extension."],
+    ["C","A command that controls another method","That describes control coupling."],
+    ["D","A method used to create a Singleton","Singleton access is unrelated to the reusable-design definition of a hook."]],why:"Hooks are intentional extension points added so new functionality can be attached later."},
+  {id:47,type:"mcq",q:"Which example best demonstrates Design with Reuse?",a:"C",o:[
+    ["A","Generalizing a component so other systems can use it","This is Design for Reuse."],
+    ["B","Adding hooks to a compiler","Hooks prepare a design for future reuse and extension."],
+    ["C","Using an existing tested component in a new system","Correct. The design actively reuses existing work."],
+    ["D","Creating an interface for possible future extensions","This prepares the current design for extension rather than consuming existing code."]],why:"Design with Reuse takes advantage of investment already made in reusable designs or code."},
+  {id:48,type:"mcq",q:"Which situation is the best candidate for the Singleton pattern?",a:"C",o:[
+    ["A","Each student in a university system","The system needs many different Student objects."],
+    ["B","Every item in a shopping cart","A cart normally contains multiple item objects."],
+    ["C","A printer device manager that must have one shared instance","Correct. Multiple managers could conflict over the same device resource."],
+    ["D","Every course section in a registration system","The system needs an object for each distinct course section."]],why:"Singleton fits a class that must have exactly one instance available from a well-known access point."},
+  {id:49,type:"mcq",q:"Which combination correctly implements the basic Singleton structure shown in the slides?",a:"B",o:[
+    ["A","Public instance variable, public constructor, private access method","Public construction and data allow uncontrolled access and creation."],
+    ["B","Private static instance variable, private constructor, public static access method","Correct. This combination stores, protects, and exposes the sole instance."],
+    ["C","Private instance variable, public constructor, public access method","A public constructor allows clients to create many objects, and a nonstatic field needs an object first."],
+    ["D","Public static instance variable, public constructor, static access method","Both the public field and constructor weaken controlled access."]],why:"The class owns one class-level reference, prevents external construction, and provides class-level access."},
+  {id:50,type:"mcq",q:"Assuming the Singleton is implemented correctly, which statement is correct?",code:"MyClass a = MyClass.getSingletonOfMyClass();\nMyClass b = MyClass.getSingletonOfMyClass();",a:"B",o:[
+    ["A","a == b is false because each call creates a new object","A correct Singleton access method returns the stored sole instance."],
+    ["B","a == b is true because both variables reference the sole instance","Correct. Both calls return the same object reference."],
+    ["C","The code fails because static methods require an existing object","Static methods are called through the class without an existing object."],
+    ["D","The code works only if the constructor is public","The constructor must be private to prevent uncontrolled external creation."]],why:"The public static access method repeatedly returns the same private static instance."}
+];
+
+let state = loadState();
+let activeFilter = "all";
+
+function loadState(){
+  try{
+    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
+    if(saved && saved.answers && typeof saved.answers === "object") return saved;
+  }catch(e){}
+  return {answers:{},updated:null};
+}
+
+function saveState(){
+  state.updated = new Date().toISOString();
+  try{localStorage.setItem(STORAGE_KEY, JSON.stringify(state));}catch(e){}
+  updateDashboard();
+}
+
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"}[c]));}
+
+function render(){
+  const root=document.getElementById("quiz");
+  root.innerHTML="";
+  const filtered=questions.filter(q=>{
+    const pick=state.answers[q.id];
+    if(activeFilter==="unanswered") return !pick;
+    if(activeFilter==="wrong") return pick && pick!==q.a;
+    if(activeFilter==="correct") return pick===q.a;
+    return true;
+  });
+  if(!filtered.length){root.innerHTML='<div class="empty">No questions match this filter.</div>';updateDashboard();return;}
+  let lastType="";
+  filtered.forEach(q=>{
+    if(activeFilter==="all" && q.type!==lastType){
+      const h=document.createElement("h2");
+      h.className="section-title";
+      h.textContent=q.type==="tf"?"Part A: True or False":"Part B: Multiple Choice";
+      root.appendChild(h);lastType=q.type;
+    }
+    root.appendChild(questionCard(q));
+  });
+  updateDashboard();
+}
+
+function questionCard(q){
+  const picked=state.answers[q.id];
+  const card=document.createElement("article");card.className="question";card.id=`q-${q.id}`;
+  const status=!picked?"Unanswered":picked===q.a?"Correct":"Wrong";
+  card.innerHTML=`<div class="qhead"><span class="qnum">Question ${q.id} of ${questions.length}</span><span class="badge ${status.toLowerCase()}">${status}</span></div><div class="prompt">${esc(q.q)}</div>${q.code?`<pre><code>${esc(q.code)}</code></pre>`:""}<div class="options"></div><div class="feedback ${picked?"show "+(picked===q.a?"good":"bad"):""}"></div>`;
+  const options=card.querySelector(".options");
+  q.o.forEach(([value,label])=>{
+    const b=document.createElement("button");b.className="option";b.type="button";
+    if(picked===value)b.classList.add("selected",picked===q.a?"correct":"wrong");
+    if(picked && value===q.a && picked!==q.a)b.classList.add("reveal-correct");
+    b.innerHTML=`<span class="letter">${esc(value)}</span><span>${esc(label)}</span>`;
+    b.addEventListener("click",()=>answer(q.id,value));options.appendChild(b);
+  });
+  if(picked) fillFeedback(card,q,picked);
+  return card;
+}
+
+function fillFeedback(card,q,picked){
+  const box=card.querySelector(".feedback");
+  const correct=picked===q.a;
+  box.innerHTML=`<h3>${correct?"✓ Correct":"✕ Not correct"}</h3><p>${esc(q.why)}</p><div class="why-list">${q.o.map(([v,label,reason])=>`<div class="why"><strong>${esc(v)}. ${esc(label)}</strong><br>${esc(reason)}</div>`).join("")}</div>`;
+}
+
+function answer(id,value){
+  state.answers[id]=value;saveState();
+  const old=document.getElementById(`q-${id}`);const q=questions.find(x=>x.id===id);
+  if(old)old.replaceWith(questionCard(q));
+  if(activeFilter!=="all") render();
+}
+
+function updateDashboard(){
+  const entries=Object.entries(state.answers).filter(([id])=>questions.some(q=>q.id===Number(id)));
+  const answered=entries.length;
+  const correct=entries.filter(([id,v])=>questions.find(q=>q.id===Number(id)).a===v).length;
+  document.getElementById("answered").textContent=`${answered}/${questions.length}`;
+  document.getElementById("correct").textContent=correct;
+  document.getElementById("wrong").textContent=answered-correct;
+  document.getElementById("score").textContent=answered?`${Math.round(correct/answered*100)}%`:"0%";
+  document.getElementById("bar").style.width=`${answered/questions.length*100}%`;
+  document.getElementById("savedAt").textContent=state.updated?`Last saved: ${new Date(state.updated).toLocaleString()}`:"No answers saved yet";
+}
+
+document.querySelectorAll(".filter").forEach(b=>b.addEventListener("click",()=>{
+  activeFilter=b.dataset.filter;document.querySelectorAll(".filter").forEach(x=>x.classList.toggle("active",x===b));render();window.scrollTo({top:document.querySelector(".filters").offsetTop-130,behavior:"smooth"});
+}));
+
+document.getElementById("nextUnanswered").addEventListener("click",()=>{
+  const q=questions.find(x=>!state.answers[x.id]);
+  if(!q){alert("You have answered all 50 questions.");return;}
+  if(activeFilter!=="all"){activeFilter="all";document.querySelectorAll(".filter").forEach(x=>x.classList.toggle("active",x.dataset.filter==="all"));render();}
+  document.getElementById(`q-${q.id}`)?.scrollIntoView({behavior:"smooth",block:"start"});
+});
+
+document.getElementById("reset").addEventListener("click",()=>{
+  if(confirm("Delete all saved answers and restart the question bank?")){
+    state={answers:{},updated:null};localStorage.removeItem(STORAGE_KEY);render();window.scrollTo({top:0,behavior:"smooth"});
+  }
+});
+
+render();
+</script>
+</body>
+</html>
