@@ -1,0 +1,895 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SWE 316 - Interactive Quiz 2 Question Bank</title>
+    <style>
+        :root {
+            --primary: #006C35; /* KFUPM Green */
+            --primary-light: #e6f2eb;
+            --secondary: #1a252f;
+            --success: #27ae60;
+            --danger: #c0392b;
+            --warning: #f39c12;
+            --bg: #f8f9fa;
+            --card-bg: #ffffff;
+            --text: #2c3e50;
+            --border: #e2e8f0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+        }
+
+        header {
+            background-color: var(--primary);
+            color: white;
+            padding: 1.5rem 2rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-container {
+            max-width: 1100px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .stats-badge {
+            background: rgba(255,255,255,0.2);
+            padding: 0.4rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
+        .nav-tabs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 2rem;
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 0.5rem;
+        }
+
+        .tab-btn {
+            background: none;
+            border: none;
+            padding: 0.6rem 1.2rem;
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: #64748b;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+        }
+
+        .tab-btn:hover {
+            background-color: #f1f5f9;
+            color: var(--secondary);
+        }
+
+        .tab-btn.active {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        .section-panel {
+            display: none;
+        }
+
+        .section-panel.active {
+            display: block;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            transition: transform 0.2s;
+        }
+
+        .q-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+            gap: 1rem;
+        }
+
+        .q-num {
+            font-weight: 700;
+            color: var(--primary);
+            font-size: 1.1rem;
+        }
+
+        .q-topic {
+            font-size: 0.8rem;
+            background: var(--primary-light);
+            color: var(--primary);
+            padding: 0.2rem 0.6rem;
+            border-radius: 4px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .q-text {
+            font-size: 1.05rem;
+            font-weight: 600;
+            margin-bottom: 1.2rem;
+            font-family: SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
+            background: #f8fafc;
+            padding: 10px;
+            border-radius: 6px;
+            white-space: pre-wrap;
+        }
+
+        .options-grid {
+            display: grid;
+            gap: 0.6rem;
+            margin-bottom: 1rem;
+        }
+
+        .option-btn {
+            background: #fff;
+            border: 1px solid var(--border);
+            padding: 0.8rem 1rem;
+            border-radius: 6px;
+            text-align: left;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+        }
+
+        .option-btn:hover:not([disabled]) {
+            border-color: var(--primary);
+            background-color: #f8fafc;
+        }
+
+        .option-btn.correct {
+            background-color: #d1fae5 !important;
+            border-color: var(--success) !important;
+            color: #065f46;
+            font-weight: 600;
+        }
+
+        .option-btn.incorrect {
+            background-color: #fee2e2 !important;
+            border-color: var(--danger) !important;
+            color: #991b1b;
+        }
+
+        .tf-grid {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .tf-grid .option-btn {
+            flex: 1;
+            justify-content: center;
+        }
+
+        .explanation {
+            margin-top: 1rem;
+            padding: 1rem;
+            background-color: #f8fafc;
+            border-left: 4px solid var(--primary);
+            border-radius: 0 6px 6px 0;
+            font-size: 0.95rem;
+            display: none;
+            direction: rtl;
+            text-align: right;
+        }
+
+        .explanation.show {
+            display: block;
+        }
+
+        .explanation h4 {
+            margin: 0 0 0.5rem 0;
+            color: var(--secondary);
+            direction: ltr;
+            text-align: left;
+        }
+
+        .exp-details {
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px dashed rgba(0,0,0,0.1);
+        }
+
+        .exp-details ul {
+            margin: 5px 0;
+            padding-left: 20px;
+            direction: ltr;
+            text-align: left;
+        }
+
+        @media (max-width: 600px) {
+            .header-container {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .nav-tabs {
+                flex-direction: column;
+            }
+            .tab-btn {
+                width: 100%;
+                text-align: left;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="header-container">
+        <div>
+            <h1>SWE 316: Software Design — Quiz 2 Bank</h1>
+            <small style="opacity: 0.8">Lecture 04 (SRP, OCP) | Lecture 06 (Principles) | Lecture 08 (Singleton)</small>
+        </div>
+        <div class="stats-badge" id="statsDisplay">Score: 0 / 0 (Completed: 0/50)</div>
+    </div>
+</header>
+
+<div class="container">
+    <div class="nav-tabs">
+        <button class="tab-btn active" onclick="switchTab('tf')">Part A: True / False (1-25)</button>
+        <button class="tab-btn" onclick="switchTab('mcq')">Part B: Multiple-Choice (26-50)</button>
+    </div>
+
+    <!-- SECTION 1: TRUE / FALSE -->
+    <div id="tf" class="section-panel active"></div>
+
+    <!-- SECTION 2: MULTIPLE CHOICE -->
+    <div id="mcq" class="section-panel"></div>
+</div>
+
+<script>
+const tfData = [
+    { id: 1, topic: "Lecture 04 - SRP", q: "1. A class automatically follows the Single-Responsibility Principle if it contains only one method.", ans: false, exp: "<b>Correct: False</b> — وجود طريقة واحدة لا يعني تلقائياً اتباع SRP؛ فقد تقوم هذه الطريقة بعدة مسؤوليات غير مرتبطة.", details: { "True": "Incorrect: SRP is about having 'one reason to change', not method count.", "False": "Correct: A single method can perform multiple unrelated operations." } },
+    { id: 2, topic: "Lecture 04 - SRP", q: "2. In the Single-Responsibility Principle, a responsibility means a reason for the class to change.", ans: true, exp: "<b>Correct: True</b> — هذا هو التعريف الدقيق للمسؤولية حسب المنهج (A responsibility = a reason to change).", details: { "True": "Correct: Directly matches the slide definition of SRP.", "False": "Incorrect: Responsibility is strictly defined as a reason to change." } },
+    { id: 3, topic: "Lecture 04 - SRP", q: "3. A class can contain several methods and still follow the Single-Responsibility Principle.", ans: true, exp: "<b>Correct: True</b> — طالما أن جميع الطرق تسهم في إنجاز مسؤولية واحدة محددة ومترابطة (High Cohesion).", details: { "True": "Correct: Multiple methods serving one cohesive goal follow SRP.", "False": "Incorrect: SRP permits multiple methods if they serve one responsibility." } },
+    { id: 4, topic: "Lecture 04 - SRP", q: "4. A Book class that maintains one book’s data and searches the entire bookstore inventory has more than one responsibility.", ans: true, exp: "<b>Correct: True</b> — إداريات كتاب واحد مسؤولية، والبحث في كامل المخزن مسؤولية أخرى مختلفة.", details: { "True": "Correct: Class manages single object state AND collection search.", "False": "Incorrect: Searching the entire inventory is a separate collection responsibility." } },
+    { id: 5, topic: "Lecture 04 - SRP", q: "5. Moving inventory searching from Book to BookCollection separates the two responsibilities.", ans: true, exp: "<b>Correct: True</b> — نقل آلية البحث لكلاس BookCollection يحقق الفصل الصحيح للمسؤوليات.", details: { "True": "Correct: Properly separates entity data from collection management.", "False": "Incorrect: Moving search logic isolates collection behavior." } },
+    { id: 6, topic: "Lecture 04 - SRP", q: "6. A class with several responsibilities may require unrelated functionality to be retested when one responsibility changes.", ans: true, exp: "<b>Correct: True</b> — تعدد المسؤوليات يؤدي لخطر التأثير الجانبي مما يتطلب إعادة اختبار وظائف غير مرتبطة.", details: { "True": "Correct: Lack of isolation forces regression testing of unrelated features.", "False": "Incorrect: Multiple responsibilities tightly bundle unrelated code." } },
+    { id: 7, topic: "Lecture 04 - OCP", q: "7. The Open-Closed Principle says that a module should be open for modification and closed for extension.", ans: false, exp: "<b>Correct: False</b> — ينص المبدأ على العكس: مفتوح للتوسيع (Open for extension) ومغلق للتعديل (Closed for modification).", details: { "True": "Incorrect: Directly inverts the OCP definition.", "False": "Correct: OCP demands Open for extension, Closed for modification." } },
+    { id: 8, topic: "Lecture 04 - OCP", q: "8. Inheritance and interfaces can allow a system to support new behavior through extension.", ans: true, exp: "<b>Correct: True</b> — الوراثة والواجهات هي الأدوات الأساسية لتطبيق OCP دون تعديل الكود القديم.", details: { "True": "Correct: Polymorphism via interfaces/inheritance enables extension.", "False": "Incorrect: Abstraction is the primary mechanism for OCP." } },
+    { id: 9, topic: "Lecture 04 - OCP", q: "9. Adding BiographyDiscount and then modifying DiscountManager to process it can violate the Open-Closed Principle.", ans: true, exp: "<b>Correct: True</b> — التعديل المباشر على DiscountManager لكل نوع جديد يخالف OCP.", details: { "True": "Correct: Modifying existing core logic for new types violates OCP.", "False": "Incorrect: Modifying DiscountManager directly violates 'closed for modification'." } },
+    { id: 10, topic: "Lecture 04 - General", q: "10. Code cannot violate a design principle if it compiles and produces the expected result.", ans: false, exp: "<b>Correct: False</b> — نجاح الترجمة والنتائج لا يعني جودة التصميم؛ قد يكون الكود يعمل ولكنه غير قابل للصيانة.", details: { "True": "Incorrect: Functional correctness does not guarantee design quality.", "False": "Correct: Badly designed code often works correctly but fails at maintenance." } },
+    { id: 11, topic: "Lecture 04 - OCP", q: "11. Depending on a common BookDiscount interface allows DiscountManager to support new discount implementations without being modified for every new type.", ans: true, exp: "<b>Correct: True</b> — الاعتماد على Interface يحقق OCP بجعل DiscountManager مغلقاً أمام التعديل.", details: { "True": "Correct: Polymorphic interfaces shield the manager from concrete additions.", "False": "Incorrect: Interface abstraction is the standard solution for OCP." } },
+    { id: 12, topic: "Lecture 06 - Principle 1", q: "12. The main idea of Divide and Conquer is to handle a large problem as a collection of smaller parts.", ans: true, exp: "<b>Correct: True</b> — التجزئة تهدف لتقسيم النظام المعقد إلى أجزاء صغيرة أسهل في الفهم والإدارة[cite: 1, 9].", details: { "True": "Correct: Core definition of functional/system decomposition[cite: 1, 9].", "False": "Incorrect: Decomposition breaks complex tasks into manageable units." } },
+    { id: 13, topic: "Lecture 06 - Principle 1", q: "13. Divide and Conquer guarantees that there will be no coupling between components.", ans: false, exp: "<b>Correct: False</b> — التقسيم لا يضمن انعدام الترابط؛ بل يظل الترابط موجوداً ويجب تقليله.", details: { "True": "Incorrect: Subsystems still require inter-component interaction.", "False": "Correct: Coupling always exists and must be managed, not magically eliminated." } },
+    { id: 14, topic: "Lecture 06 - Principle 1", q: "14. One benefit of Divide and Conquer is that different software engineers can work on different parts.", ans: true, exp: "<b>Correct: True</b> — التجزئة تتيح توزيع العمل على مطورين مختلفين بالتوازي.", details: { "True": "Correct: Parallel development is a major managerial benefit of decomposition.", "False": "Incorrect: Modular division enables concurrent team workflows." } },
+    { id: 15, topic: "Lecture 06 - Principle 1", q: "15. A class may be divided into methods as part of the Divide and Conquer principle.", ans: true, exp: "<b>Correct: True</b> — تقسيم الكلاس إلى طرق صغيرة هو تطبيق للمبدأ على المستوى التفصيلي.", details: { "True": "Correct: Method decomposition is low-level Divide and Conquer.", "False": "Incorrect: Dividing complex class logic into methods is a valid application." } },
+    { id: 16, topic: "Lecture 06 - Principle 2", q: "16. High cohesion means that a module keeps related elements together and keeps unrelated elements outside.", ans: true, exp: "<b>Correct: True</b> — التماسك العالي يعني جمع العناصر المترابطة واستبعاد غير المترابطة.", details: { "True": "Correct: Textbook definition of high cohesion[cite: 1].", "False": "Incorrect: High cohesion maximizes functional relatedness within a module." } },
+    { id: 17, topic: "Lecture 06 - Principle 2", q: "17. Adding an email-sending operation to a class responsible only for calculating grades would normally increase its cohesion.", ans: false, exp: "<b>Correct: False</b> — إضافة إرسال البريد يقلل التماسك (Decreases cohesion) لإدخاله وظيفة غريبة[cite: 1].", details: { "True": "Incorrect: Mixing email logic with grade calculation dilutes cohesion.", "False": "Correct: Unrelated responsibilities decrease module cohesion." } },
+    { id: 18, topic: "Lecture 06 - Principle 3", q: "18. Coupling occurs when dependencies exist between modules.", ans: true, exp: "<b>Correct: True</b> — الترابط يقيس درجة اعتماد الموديولات على بعضها البعض[cite: 1].", details: { "True": "Correct: Definition of coupling as inter-module dependency[cite: 1].", "False": "Incorrect: Dependency degree is the definition of coupling." } },
+    { id: 19, topic: "Lecture 06 - Principle 3", q: "19. High coupling may cause a change in one module to require changes in another module.", ans: true, exp: "<b>Correct: True</b> — الترابط العالي يجعل النظام هشاً؛ فتعديل وحدة يتطلب تعديل المعتمدة عليها[cite: 1].", details: { "True": "Correct: Ripple effect is the primary drawback of high coupling[cite: 1].", "False": "Incorrect: Tight coupling causes cascading change requirements." } },
+    { id: 20, topic: "Lecture 06 - Principle 3", q: "20. Content coupling occurs when one module modifies data that is internal to another component.", ans: true, exp: "<b>Correct: True</b> — يحدث Content Coupling عند التعديل المباشر على بيانات داخلية لكائن آخر[cite: 1].", details: { "True": "Correct: Exact definition of content coupling[cite: 1].", "False": "Incorrect: Modifying private internals directly is content coupling." } },
+    { id: 21, topic: "Lecture 06 - Principle 3", q: "21. According to the slides, content coupling should always be avoided.", ans: true, exp: "<b>Correct: True</b> — يُعتبر Content Coupling أسوأ أشكال الترابط ويجب تجنبه نهائياً[cite: 1].", details: { "True": "Correct: Explicitly stated in slides to always avoid content coupling[cite: 1].", "False": "Incorrect: Content coupling is the worst form and must be avoided." } },
+    { id: 22, topic: "Lecture 06 - Principle 3", q: "22. Sending a command or flag that tells another method which operation to perform is an example of control coupling.", ans: true, exp: "<b>Correct: True</b> — التمرير عبر أشرطة أو أوامر لتحديد مسار التنفيذ يُعد Control Coupling[cite: 1].", details: { "True": "Correct: Passing control flags/commands defines control coupling[cite: 1].", "False": "Incorrect: Directing execution path via flags is control coupling." } },
+    { id: 23, topic: "Lecture 06 - Principle 3", q: "23. Declaring a class as the type of a method argument introduces stamp coupling.", ans: true, exp: "<b>Correct: True</b> — تمرير كائن كاملاً كـ Argument يُنشئ Stamp Coupling[cite: 1].", details: { "True": "Correct: Declaring composite class types as arguments creates stamp coupling[cite: 1].", "False": "Incorrect: Passing data structures/objects introduces stamp coupling." } },
+    { id: 24, topic: "Lecture 06 - Principle 3", q: "24. Every form of stamp coupling must always be eliminated.", ans: false, exp: "<b>Correct: False</b> — ليس كل Stamp Coupling سيئاً؛ فهو مقبول ومستعمل طالما لا يسبب تعقيداً مفرطاً[cite: 1].", details: { "True": "Incorrect: Unlike content coupling, stamp coupling is often acceptable.", "False": "Correct: Eliminating all stamp coupling would make argument lists unwieldy." } },
+    { id: 25, topic: "Lecture 08 - Singleton", q: "25. The Singleton pattern ensures that a class has one instance and provides a global access point to that instance.", ans: true, exp: "<b>Correct: True</b> — هذا هو التعريف الرسمي والمطابق لنمط Singleton[cite: 1].", details: { "True": "Correct: Standard definition of the Singleton design pattern[cite: 1].", "False": "Incorrect: Single instance + global access is the core intent." } }
+];
+
+const mcqData = [
+    {
+        id: 26, topic: "Lecture 04 - SRP",
+        q: "26. Which statement best describes the Single-Responsibility Principle?",
+        options: [
+            "A. A class should contain only one attribute",
+            "B. A class should contain only one method",
+            "C. A class should have only one reason to change",
+            "D. A class should never communicate with another class"
+        ],
+        ans: 2,
+        exp: "<b>Correct: C</b> — المبدأ ينص صراحة على أن الكلاس يجب أن يملك سبباً واحداً فقط للتغيير (Single reason to change)[cite: 1].",
+        details: {
+            "A": "Incorrect: SRP does not restrict attribute counts.",
+            "B": "Incorrect: SRP does not limit method count; multiple methods can serve one responsibility[cite: 1].",
+            "C": "Correct: Fundamental definition of Single Responsibility Principle[cite: 1].",
+            "D": "Incorrect: Classes must collaborate in OO systems."
+        }
+    },
+    {
+        id: 27, topic: "Lecture 04 - SRP",
+        q: "27. Consider the following class:\nclass Student {\n  void storeStudentData() { }\n  double calculateGPA() { return 0; }\n  void sendEmail() { }\n}\nWhy does this class most likely violate the Single-Responsibility Principle?",
+        options: [
+            "A. It contains more than one method",
+            "B. It handles student data, GPA calculation, and email communication",
+            "C. Its methods do not use static",
+            "D. The class does not use inheritance"
+        ],
+        ans: 1,
+        exp: "<b>Correct: B</b> — الكلاس يتحمل 3 مسؤوليات مختلفة (بيانات، معدل، وإيميل) مما يعني 3 أسباب مختلفة للتعديل[cite: 1].",
+        details: {
+            "A": "Incorrect: Multiple cohesive methods are allowed under SRP.",
+            "B": "Correct: Combining data persistence, business logic, and notifications violates SRP[cite: 1].",
+            "C": "Incorrect: Static keywords do not fix SRP violations.",
+            "D": "Incorrect: Inheritance is unrelated to this SRP violation."
+        }
+    },
+    {
+        id: 28, topic: "Lecture 04 - SRP",
+        q: "28. A Book class stores a book’s title and author and searches a collection containing thousands of books. What is the best redesign?",
+        options: [
+            "A. Make all methods static",
+            "B. Move the title and author to BookCollection",
+            "C. Move collection searching to BookCollection",
+            "D. Create one subclass for each book"
+        ],
+        ans: 2,
+        exp: "<b>Correct: C</b> — الفصل الصحيح يقتضي جعل Book مخصصاً لكتاب واحد، ونقل البحث لكلاس BookCollection[cite: 1].",
+        details: {
+            "A": "Incorrect: Static methods do not resolve responsibility mixing.",
+            "B": "Incorrect: Destroys single object representation.",
+            "C": "Correct: Separates individual entity state from collection operations[cite: 1].",
+            "D": "Incorrect: Subclassing every book instance is bad design."
+        }
+    },
+    {
+        id: 29, topic: "Lecture 04 - OCP",
+        q: "29. Which statement correctly describes the Open-Closed Principle?",
+        options: [
+            "A. Open for modification and closed for extension",
+            "B. Open for extension and closed for modification",
+            "C. Closed for both extension and modification",
+            "D. Open for both extension and modification"
+        ],
+        ans: 1,
+        exp: "<b>Correct: B</b> — المبدأ الذهبي OCP: مفتوح للتوسيع، مغلق أمام التعديل[cite: 1].",
+        details: {
+            "A": "Incorrect: Inverts OCP entirely.",
+            "B": "Correct: Canonical OCP definition[cite: 1].",
+            "C": "Incorrect: Prevents software evolution.",
+            "D": "Incorrect: Modification opens code to risk and bugs."
+        }
+    },
+    {
+        id: 30, topic: "Lecture 04 - OCP",
+        q: "30. Why should existing production code preferably be extended instead of modified when adding a feature?",
+        options: [
+            "A. Extension eliminates the need for testing",
+            "B. Modification may introduce unexpected behavior into existing functionality",
+            "C. Extended code cannot contain errors",
+            "D. Modification always causes compilation errors"
+        ],
+        ans: 1,
+        exp: "<b>Correct: B</b> — التعديل المباشر قد يحقن أخطاء غير متوقعة (Side effects) في وظائف سابقة تعمل بسلام[cite: 1].",
+        details: {
+            "A": "Incorrect: New extensions still require testing.",
+            "B": "Correct: Protects tested, stable code from regression bugs[cite: 1].",
+            "C": "Incorrect: Extension code can still have bugs.",
+            "D": "Incorrect: Code may compile fine but introduce logical errors."
+        }
+    },
+    {
+        id: 31, topic: "Lecture 04 - OCP",
+        q: "31. Consider this design:\nclass DiscountManager {\n  void processCookbookDiscount(CookbookDiscount discount) { }\n  void processBiographyDiscount(BiographyDiscount discount) { }\n}\nWhat is the main design problem?",
+        options: [
+            "A. The methods should be private",
+            "B. Every new discount type may require modifying DiscountManager",
+            "C. The class needs a public constructor",
+            "D. The discount parameters should be primitive values"
+        ],
+        ans: 1,
+        exp: "<b>Correct: B</b> — المشكلة هي الحاجة لتعديل الكلاس وإضافة طريقة جديدة لكل نوع خصم جديد مما يخالف OCP[cite: 1].",
+        details: {
+            "A": "Incorrect: Private methods prevent usage.",
+            "B": "Correct: Violates OCP because additions force modification of DiscountManager[cite: 1].",
+            "C": "Incorrect: Constructor visibility is irrelevant here.",
+            "D": "Incorrect: Primitives don't solve polymorphic discount processing."
+        }
+    },
+    {
+        id: 32, topic: "Lecture 04 - OCP",
+        q: "32. Which method signature best supports the Open-Closed Principle?",
+        options: [
+            "A. void processDiscount(CookbookDiscount discount)",
+            "B. void processDiscount(BiographyDiscount discount)",
+            "C. void processDiscount(BookDiscount discount)",
+            "D. void processDiscount(String discountType)"
+        ],
+        ans: 2,
+        exp: "<b>Correct: C</b> — اعتماد الميثود على Interface عامة (BookDiscount) يتيح إرسال أي نوع دون تعديل الكود[cite: 1].",
+        details: {
+            "A": "Incorrect: Tightly coupled to concrete Cookbook type.",
+            "B": "Incorrect: Tightly coupled to concrete Biography type.",
+            "C": "Correct: Uses interface abstraction to support new types polymorphically[cite: 1].",
+            "D": "Incorrect: Passing string triggers control coupling and internal switches."
+        }
+    },
+    {
+        id: 33, topic: "Lecture 04 - OCP",
+        q: "33. Which change most directly applies the Open-Closed Principle to the discount example?",
+        options: [
+            "A. Make DiscountManager a Singleton",
+            "B. Make all discount attributes public",
+            "C. Create a BookDiscount interface implemented by the discount classes",
+            "D. Add an if statement for every discount type"
+        ],
+        ans: 2,
+        exp: "<b>Correct: C</b> — إنشاء Interface تجعل كلاسات الخصم تنفذ الطرق وتستقبلها الإدارة بمرونة[cite: 1].",
+        details: {
+            "A": "Incorrect: Singleton doesn't solve open/closed extensibility.",
+            "B": "Incorrect: Public attributes destroy encapsulation.",
+            "C": "Correct: Decouples manager via polymorphic BookDiscount interface[cite: 1].",
+            "D": "Incorrect: Adding if statements directly violates OCP."
+        }
+    },
+    {
+        id: 34, topic: "Lecture 04 - OCP",
+        q: "34. After DiscountManager depends on BookDiscount, a new StudentDiscount is required. What should normally happen?",
+        options: [
+            "A. Add a new method to DiscountManager",
+            "B. Modify all existing discount classes",
+            "C. Create StudentDiscount as another implementation of BookDiscount",
+            "D. Replace BookDiscount with StudentDiscount"
+        ],
+        ans: 2,
+        exp: "<b>Correct: C</b> — ننشئ كلاس جديد ينفذ الـ Interface دون المساس بأي كلاس قديم[cite: 1].",
+        details: {
+            "A": "Incorrect: Modifying manager violates OCP.",
+            "B": "Incorrect: Existing discount implementations remain untouched.",
+            "C": "Correct: Extends functionality via a new class without modifying existing code[cite: 1].",
+            "D": "Incorrect: Interface must remain to serve all discount types."
+        }
+    },
+    {
+        id: 35, topic: "Lecture 06 - Principle 1",
+        q: "35. Which is a direct benefit of Divide and Conquer?",
+        options: [
+            "A. It makes every component independent",
+            "B. It makes smaller components easier to understand",
+            "C. It completely removes maintenance costs",
+            "D. It guarantees reusable code"
+        ],
+        ans: 1,
+        exp: "<b>Correct: B</b> — تقسيم المكونات الكبيرة إلى أجزاء صغيرة يجعل استيعابها وصيانتها أسهل[cite: 1].",
+        details: {
+            "A": "Incorrect: Components still maintain necessary interdependencies.",
+            "B": "Correct: Smaller modules reduce cognitive complexity[cite: 1].",
+            "C": "Incorrect: Maintenance costs are reduced, not eliminated.",
+            "D": "Incorrect: Reusability requires intentional design beyond division."
+        }
+    },
+    {
+        id: 36, topic: "Lecture 06 - Principle 1",
+        q: "36. Which order correctly represents division from a larger system to smaller units?",
+        options: [
+            "A. Class, package, subsystem, method",
+            "B. System, subsystem, package, class, method",
+            "C. Method, class, package, subsystem, system",
+            "D. System, method, subsystem, class, package"
+        ],
+        ans: 1,
+        exp: "<b>Correct: B</b> — التسلسل الهرمي المنطقي المذكور في المذكرات: System -> Subsystem -> Package -> Class -> Method[cite: 1].",
+        details: {
+            "A": "Incorrect: Out of order.",
+            "B": "Correct: Top-down decomposition hierarchy from system to method[cite: 1].",
+            "C": "Incorrect: Bottom-up order.",
+            "D": "Incorrect: Method is placed incorrectly."
+        }
+    },
+    {
+        id: 37, topic: "Lecture 06 - Principle 2",
+        q: "37. Which module has the highest cohesion?",
+        options: [
+            "A. A class that stores students, sends emails, and prints invoices",
+            "B. A class whose methods all perform operations related to course registration",
+            "C. A class containing unrelated utility methods",
+            "D. A class that performs every operation in the system"
+        ],
+        ans: 1,
+        exp: "<b>Correct: B</b> — التماسك العالي يتحقق عندما تعمل الطرق لتحقيق هدف وظيفي مترابط واحد[cite: 1].",
+        details: {
+            "A": "Incorrect: Low cohesion (multiple unrelated duties).",
+            "B": "Correct: High cohesion (all methods serve single registration domain)[cite: 1].",
+            "C": "Incorrect: Coincidental/Low cohesion.",
+            "D": "Incorrect: God Class with worst possible cohesion."
+        }
+    },
+    {
+        id: 38, topic: "Lecture 06 - Principle 2",
+        q: "38. A module calculates salaries, displays advertisements, and controls printers. What is the most likely evaluation?",
+        options: [
+            "A. High cohesion because the module has several methods",
+            "B. High cohesion because all methods are public",
+            "C. Low cohesion because the responsibilities are unrelated",
+            "D. Low coupling because everything is placed in one module"
+        ],
+        ans: 2,
+        exp: "<b>Correct: C</b> — رواتب، إعلانات، وطابعات هي مهام لا علاقة بينها مما يدل على Low cohesion[cite: 1].",
+        details: {
+            "A": "Incorrect: Method quantity doesn't equal cohesion.",
+            "B": "Incorrect: Access modifiers don't affect cohesion.",
+            "C": "Correct: Combining unrelated domains causes low cohesion[cite: 1].",
+            "D": "Incorrect: Placing everything in one module doesn't lower coupling correctly."
+        }
+    },
+    {
+        id: 39, topic: "Lecture 06 - Principle 3",
+        q: "39. What is the primary problem caused by high coupling?",
+        options: [
+            "A. Modules become too small",
+            "B. Changes can spread from one module to other dependent modules",
+            "C. Modules contain too many related elements",
+            "D. The program cannot use interfaces"
+        ],
+        ans: 1,
+        exp: "<b>Correct: B</b> — المشكلة الكبرى للترابط القوي هي انتشار التغييرات والأخطاء للكلاسات المعتمدة[cite: 1].",
+        details: {
+            "A": "Incorrect: Coupling size is unrelated to module code lines.",
+            "B": "Correct: High coupling creates ripple effects across dependencies[cite: 1].",
+            "C": "Incorrect: Describes high cohesion.",
+            "D": "Incorrect: High coupling often results from NOT using interfaces."
+        }
+    },
+    {
+        id: 40, topic: "Lecture 06 - Principle 3",
+        q: "40. Consider the following code:\nEmployee employee = new Employee();\nemployee.salary = 10000;\nAssume salary belongs internally to Employee. Which type of coupling is demonstrated by directly changing it from another module?",
+        options: [
+            "A. Stamp coupling",
+            "B. Control coupling",
+            "C. Content coupling",
+            "D. Data abstraction"
+        ],
+        ans: 2,
+        exp: "<b>Correct: C</b> — التعديل والوصول المباشر لبيانات كائن حرة دون استخدام الطرق هو Content Coupling[cite: 1].",
+        details: {
+            "A": "Incorrect: Stamp coupling passes objects as parameters.",
+            "B": "Incorrect: Control coupling passes flags/commands.",
+            "C": "Correct: Direct modification of internal private state is content coupling[cite: 1].",
+            "D": "Incorrect: Violates abstraction completely."
+        }
+    },
+    {
+        id: 41, topic: "Lecture 06 - Principle 3",
+        q: "41. Consider the following method:\nvoid generateReport(String command) {\n  if (command.equals(\"PDF\")) { createPDF(); }\n  else { createTextFile(); }\n}\nWhich type of coupling does this demonstrate?",
+        options: [
+            "A. Content coupling",
+            "B. Control coupling",
+            "C. Stamp coupling",
+            "D. No coupling"
+        ],
+        ans: 1,
+        exp: "<b>Correct: B</b> — تمرير متغير (command) لإجبار الميثود على إتباع مسار محدد يُسمى Control Coupling[cite: 1].",
+        details: {
+            "A": "Incorrect: No internal state modification occurs.",
+            "B": "Correct: Passing a command parameter to direct internal flow is control coupling[cite: 1].",
+            "C": "Incorrect: Not passing composite object parameter.",
+            "D": "Incorrect: Control dependency exists."
+        }
+    },
+    {
+        id: 42, topic: "Lecture 06 - Principle 3",
+        q: "42. Consider the following method:\nvoid sendEmail(Employee employee, String text) {\n  // Uses employee.getEmail()\n}\nWhich type of coupling exists because an Employee object is passed as an argument?",
+        options: [
+            "A. Content coupling",
+            "B. Control coupling",
+            "C. Stamp coupling",
+            "D. Inheritance coupling"
+        ],
+        ans: 2,
+        exp: "<b>Correct: C</b> — تمرير كائن ضخم بالكامل بينما الميثود لا تحتاج سوى email ينشئ Stamp Coupling[cite: 1].",
+        details: {
+            "A": "Incorrect: Accesses data via public getter, not internal mutation.",
+            "B": "Incorrect: Doesn't pass control flags.",
+            "C": "Correct: Passing entire Employee object when only email is needed is stamp coupling[cite: 1].",
+            "D": "Incorrect: No inheritance relationship exists."
+        }
+    },
+    {
+        id: 43, topic: "Lecture 06 - Principle 3",
+        q: "43. Which statement about stamp coupling matches the slides?",
+        options: [
+            "A. It occurs only when primitive values are passed",
+            "B. It occurs whenever a class is declared as a method argument type",
+            "C. It must always be completely avoided",
+            "D. It occurs when one module changes another module’s internal data"
+        ],
+        ans: 1,
+        exp: "<b>Correct: B</b> — المذكرات تعرّف Stamp Coupling بأنه يحدث عند استخدام كلاس كـ Parameter في ميثود[cite: 1].",
+        details: {
+            "A": "Incorrect: Passing primitives is Data coupling.",
+            "B": "Correct: Slide definition: declaring class types as parameters creates stamp coupling[cite: 1].",
+            "C": "Incorrect: Stamp coupling is often acceptable.",
+            "D": "Incorrect: Describes Content coupling."
+        }
+    },
+    {
+        id: 44, topic: "Lecture 06 - Principle 3",
+        q: "44. A method requires only an employee’s email address but receives the complete Employee object. What is the most relevant concern?",
+        options: [
+            "A. Content coupling",
+            "B. Stamp coupling",
+            "C. Divide and Conquer",
+            "D. Singleton access"
+        ],
+        ans: 1,
+        exp: "<b>Correct: B</b> — هذه هي مشكلة Stamp Coupling الشائعة (تمرير كائن أضخم مما تحتاجه الميثود)[cite: 1].",
+        details: {
+            "A": "Incorrect: Not modifying private internals directly.",
+            "B": "Correct: Passing more data structures than needed creates Stamp coupling[cite: 1].",
+            "C": "Incorrect: Unrelated decomposition concept.",
+            "D": "Incorrect: Unrelated pattern."
+        }
+    },
+    {
+        id: 45, topic: "Lecture 06 - Principle 5",
+        q: "45. Which example best demonstrates Design for Reuse?",
+        options: [
+            "A. Using an existing sorting library",
+            "B. Designing a serializer that can save objects from many classes",
+            "C. Copying code from another system",
+            "D. Calling an existing reusable component"
+        ],
+        ans: 1,
+        exp: "<b>Correct: B</b> — Design for Reuse يهدف لبناء مكونات عامة ومرنة لتستخدمها الأنظمة الأخرى مستقبلاً[cite: 1].",
+        details: {
+            "A": "Incorrect: This is Design WITH Reuse.",
+            "B": "Correct: Building general-purpose components for future systems is Design FOR Reuse[cite: 1].",
+            "C": "Incorrect: Code copying is poor practice, not architectural reuse.",
+            "D": "Incorrect: Calling existing components is Design WITH Reuse."
+        }
+    },
+    {
+        id: 46, topic: "Lecture 06 - Principle 5",
+        q: "46. What is a hook in a reusable design?",
+        options: [
+            "A. A private attribute that cannot be changed",
+            "B. A deliberately added point where future designers can add functionality",
+            "C. A command that controls another method",
+            "D. A method used to create a Singleton"
+        ],
+        ans: 1,
+        exp: "<b>Correct: B</b> — الـ Hook هو نقطة مجهزة عمداً لتسمح للمطورين بإضافة أو تخصيص السلوك مستقبلاً[cite: 1].",
+        details: {
+            "A": "Incorrect: Private unchangeable attributes block extensibility.",
+            "B": "Correct: Deliberate extension points built for future customization are hooks[cite: 1].",
+            "C": "Incorrect: Relates to control coupling.",
+            "D": "Incorrect: Unrelated to Singleton construction."
+        }
+    },
+    {
+        id: 47, topic: "Lecture 06 - Principle 5",
+        q: "47. Which example best demonstrates Design with Reuse?",
+        options: [
+            "A. Generalizing a component so other systems can use it",
+            "B. Adding hooks to a compiler",
+            "C. Using an existing tested component in a new system",
+            "D. Creating an interface for possible future extensions"
+        ],
+        ans: 2,
+        exp: "<b>Correct: C</b> — Design WITH Reuse يعني بناء نظامك الجديد بالاستفادة من مكتبات جاهزة[cite: 1].",
+        details: {
+            "A": "Incorrect: This is Design FOR Reuse.",
+            "B": "Incorrect: Adding hooks prepares a system FOR reuse.",
+            "C": "Correct: Integrating pre-existing components into a new project is Design WITH Reuse[cite: 1].",
+            "D": "Incorrect: Creating interfaces prepares FOR reuse."
+        }
+    },
+    {
+        id: 48, topic: "Lecture 08 - Singleton",
+        q: "48. Which situation is the best candidate for the Singleton pattern?",
+        options: [
+            "A. Each student in a university system",
+            "B. Every item in a shopping cart",
+            "C. A printer device manager that must have one shared instance",
+            "D. Every course section in a registration system"
+        ],
+        ans: 2,
+        exp: "<b>Correct: C</b> — مدير الطابعات Central printer manager يتطلب كائناً واحداً مشتركاً في النظام[cite: 1].",
+        details: {
+            "A": "Incorrect: Multiple instances required for students.",
+            "B": "Incorrect: Cart items are multiple distinct instances.",
+            "C": "Correct: Centralized resource manager requiring exactly one shared instance[cite: 1].",
+            "D": "Incorrect: Registration system has many course sections."
+        }
+    },
+    {
+        id: 49, topic: "Lecture 08 - Singleton",
+        q: "49. Which combination correctly implements the basic Singleton structure shown in the slides?",
+        options: [
+            "A. Public instance variable, public constructor, private access method",
+            "B. Private static instance variable, private constructor, public static access method",
+            "C. Private instance variable, public constructor, public access method",
+            "D. Public static instance variable, public constructor, static access method"
+        ],
+        ans: 1,
+        exp: "<b>Correct: B</b> — التركيبة: متغير static خاص، constructor خاص لمنع new، وميثود static عامة[cite: 1].",
+        details: {
+            "A": "Incorrect: Public instance allows external direct manipulation.",
+            "B": "Correct: Classic Singleton structure: private static instance, private constructor, public static accessor[cite: 1].",
+            "C": "Incorrect: Public constructor allows unlimited instantiations.",
+            "D": "Incorrect: Public constructor destroys instance restriction."
+        }
+    },
+    {
+        id: 50, topic: "Lecture 08 - Singleton",
+        q: "50. Consider the following code:\nMyClass a = MyClass.getSingletonOfMyClass();\nMyClass b = MyClass.getSingletonOfMyClass();\nAssuming the Singleton is implemented correctly, which statement is correct?",
+        options: [
+            "A. a == b is false because each call creates a new object",
+            "B. a == b is true because both variables reference the sole instance",
+            "C. The code fails because static methods require an existing object",
+            "D. The code works only if the constructor is public"
+        ],
+        ans: 1,
+        exp: "<b>Correct: B</b> — المقارنة == تنتهي بـ true لأن المتغيرين يشيران لنفس الكائن الوحيد المخزن[cite: 1].",
+        details: {
+            "A": "Incorrect: Singleton returns the existing single instance, not a new one.",
+            "B": "Correct: Both references point to the identical memory address of the single instance[cite: 1].",
+            "C": "Incorrect: Static methods are invoked on the class, not instance.",
+            "D": "Incorrect: Constructor MUST be private."
+        }
+    }
+];
+
+let score = 0;
+let answeredCount = 0;
+const totalInteractive = tfData.length + mcqData.length;
+
+function updateStats() {
+    document.getElementById('statsDisplay').innerText = `Score: ${score} / ${answeredCount} (Completed: ${answeredCount}/${totalInteractive})`;
+}
+
+function renderTF() {
+    const container = document.getElementById('tf');
+    container.innerHTML = tfData.map(q => `
+        <div class="card" id="card-tf-${q.id}">
+            <div class="q-header">
+                <span class="q-num">Question ${q.id}</span>
+                <span class="q-topic">${q.topic}</span>
+            </div>
+            <div class="q-text">${q.q}</div>
+            <div class="options-grid tf-grid">
+                <button class="option-btn" onclick="checkTF(${q.id}, true)">True</button>
+                <button class="option-btn" onclick="checkTF(${q.id}, false)">False</button>
+            </div>
+            <div class="explanation" id="exp-tf-${q.id}">
+                <h4>Explanation & Option Analysis</h4>
+                <div>${q.exp}</div>
+                <div class="exp-details">
+                    <b>Option Breakdown:</b>
+                    <ul>
+                        <li><b>True:</b> ${q.details['True']}</li>
+                        <li><b>False:</b> ${q.details['False']}</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    `).join('');
+}
+
+function checkTF(qId, selectedVal) {
+    const q = tfData.find(item => item.id === qId);
+    const card = document.getElementById(`card-tf-${qId}`);
+    const buttons = card.querySelectorAll('.option-btn');
+    const exp = document.getElementById(`exp-tf-${qId}`);
+
+    if (card.getAttribute('data-answered')) return;
+    card.setAttribute('data-answered', 'true');
+
+    buttons.forEach(btn => {
+        btn.disabled = true;
+        const btnVal = btn.innerText === 'True';
+        if (btnVal === q.ans) {
+            btn.classList.add('correct');
+        }
+        if (btnVal === selectedVal && selectedVal !== q.ans) {
+            btn.classList.add('incorrect');
+        }
+    });
+
+    answeredCount++;
+    if (selectedVal === q.ans) {
+        score++;
+    }
+
+    exp.classList.add('show');
+    updateStats();
+}
+
+function renderMCQs() {
+    const container = document.getElementById('mcq');
+    container.innerHTML = mcqData.map(q => `
+        <div class="card" id="card-mcq-${q.id}">
+            <div class="q-header">
+                <span class="q-num">Question ${q.id}</span>
+                <span class="q-topic">${q.topic}</span>
+            </div>
+            <div class="q-text">${q.q}</div>
+            <div class="options-grid">
+                ${q.options.map((opt, idx) => `
+                    <button class="option-btn" onclick="checkMCQ(${q.id}, ${idx})">${opt}</button>
+                `).join('')}
+            </div>
+            <div class="explanation" id="exp-mcq-${q.id}">
+                <h4>Explanation & Option Analysis</h4>
+                <div>${q.exp}</div>
+                <div class="exp-details">
+                    <b>Option Breakdown:</b>
+                    <ul>
+                        ${['A', 'B', 'C', 'D'].map((letter, i) => q.details[letter] ? `<li><b>${letter}:</b>${q.details[letter]}</li>` : '').join('')}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    `).join('');
+}
+
+function checkMCQ(qId, selectedIdx) {
+    const q = mcqData.find(item => item.id === qId);
+    const card = document.getElementById(`card-mcq-${qId}`);
+    const buttons = card.querySelectorAll('.option-btn');
+    const exp = document.getElementById(`exp-mcq-${qId}`);
+
+    if (card.getAttribute('data-answered')) return;
+    card.setAttribute('data-answered', 'true');
+
+    buttons.forEach((btn, idx) => {
+        btn.disabled = true;
+        if (idx === q.ans) {
+            btn.classList.add('correct');
+        }
+        if (idx === selectedIdx && selectedIdx !== q.ans) {
+            btn.classList.add('incorrect');
+        }
+    });
+
+    answeredCount++;
+    if (selectedIdx === q.ans) {
+        score++;
+    }
+
+    exp.classList.add('show');
+    updateStats();
+}
+
+function switchTab(tabId) {
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+    document.querySelectorAll('.section-panel').forEach(panel => panel.classList.remove('active'));
+    
+    event.target.classList.add('active');
+    document.getElementById(tabId).classList.add('active');
+}
+
+// Initial Render
+renderTF();
+renderMCQs();
+updateStats();
+</script>
+
+</body>
+</html>
